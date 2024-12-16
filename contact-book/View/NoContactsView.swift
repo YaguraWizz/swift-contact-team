@@ -1,9 +1,10 @@
 //
-//  NoContactsView.swift
+//  Contact.swift
 //  contact-book
 //
 //  Created by Nikita on 16.12.2024.
 //
+
 
 import SwiftUI
 

@@ -1,9 +1,10 @@
 //
-//  EditContactViewModel.swift
-//  MyRideOrDies
+//  Contact.swift
+//  contact-book
 //
-//  Created by Tunde Adegoroye on 10/12/2022.
+//  Created by Nikita on 16.12.2024.
 //
+
 
 import Foundation
 import CoreData
