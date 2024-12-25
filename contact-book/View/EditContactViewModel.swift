@@ -32,4 +32,21 @@ final class EditContactViewModel: ObservableObject {
     func save() throws {
         try provider.persist(in: context)
     }
+    
+    func addPhoneNumber() {
+        let newPhoneNumber = PhoneNumber(context: context)
+        newPhoneNumber.number = ""
+        newPhoneNumber.type = "Mobile"
+        newPhoneNumber.contact = contact
+        contact.phoneNumbers.insert(newPhoneNumber)
+    }
+
+    func removePhoneNumbers(at offsets: IndexSet) {
+        let phoneNumbersArray = Array(contact.phoneNumbers)
+        for index in offsets {
+            let phoneNumberToRemove = phoneNumbersArray[index]
+            context.delete(phoneNumberToRemove)
+            contact.phoneNumbers.remove(phoneNumberToRemove)
+        }
+    }
 }

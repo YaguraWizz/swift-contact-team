@@ -4,8 +4,8 @@
 //
 //  Created by Tunde Adegoroye on 10/12/2022.
 //
-
 import SwiftUI
+
 
 struct CreateContactView: View {
     
@@ -14,56 +14,80 @@ struct CreateContactView: View {
     
     @State private var hasError: Bool = false
 
-       var body: some View {
-           List {
-               
-               Section("General") {
-                  
-                   TextField("Name", text: $vm.contact.name)
-                                       .keyboardType(.namePhonePad)
+    var body: some View {
+        List {
+            Section("General") {
+                TextField("Name", text: $vm.contact.name)
+                    .keyboardType(.namePhonePad)
 
-                   TextField("Email", text: $vm.contact.email)
-                       .keyboardType(.emailAddress)
+                TextField("Email", text: $vm.contact.email)
+                    .keyboardType(.emailAddress)
 
-                   TextField("Phone Number", text: $vm.contact.phoneNumber)
-                       .keyboardType(.phonePad)
+                DatePicker("Birthday",
+                           selection: $vm.contact.dob,
+                           displayedComponents: [.date])
+                    .datePickerStyle(.compact)
+                
+                Toggle("Favourite", isOn: $vm.contact.isFavourite)
+            }
 
-                   DatePicker("Birthday",
-                              selection: $vm.contact.dob,
-                              displayedComponents: [.date])
-                   .datePickerStyle(.compact)
-                   
-                   Toggle("Favourite", isOn: $vm.contact.isFavourite)
-                   
-               }
-               
-               Section("Notes") {
-                   TextField("",
-                             text: $vm.contact.notes,
-                             axis: .vertical)
-               }
-           }
-           .navigationTitle(vm.isNew ? "New Contact" : "Update Contact")
-           .toolbar {
-               ToolbarItem(placement: .confirmationAction) {
-                   Button("Done") {
-                       validate()
-                   }
-               }
-               
-               ToolbarItem(placement: .navigationBarLeading) {
-                   Button("Cancel") {
-                       dismiss()
-                   }
-               }
-           }
-           .alert("Something aint right",
-                  isPresented: $hasError,
-                  actions: {}) {
-               Text("It looks like your form is invalid")
-           }
+            Section("Phone Numbers") {
+                ForEach(Array(vm.contact.phoneNumbers), id: \.self) { phoneNumber in
+                    HStack {
+                        TextField("Number", text: Binding(
+                            get: { phoneNumber.number },
+                            set: { newValue in
+                                phoneNumber.number = newValue
+                            }
+                        ))
+                        .keyboardType(.phonePad)
 
-       }
+                        TextField("Type", text: Binding(
+                            get: { phoneNumber.type },
+                            set: { newValue in
+                                phoneNumber.type = newValue
+                            }
+                        ))
+                        .keyboardType(.default)
+                    }
+                }
+                .onDelete { indexSet in
+                    vm.removePhoneNumbers(at: indexSet)
+                }
+                
+                Button(action: {
+                    vm.addPhoneNumber()
+                }) {
+                    Label("Add Phone Number", systemImage: "plus")
+                }
+            }
+
+            Section("Notes") {
+                TextField("Notes",
+                          text: $vm.contact.notes,
+                          axis: .vertical)
+            }
+        }
+        .navigationTitle(vm.isNew ? "New Contact" : "Update Contact")
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Done") {
+                    validate()
+                }
+            }
+            
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Cancel") {
+                    dismiss()
+                }
+            }
+        }
+        .alert("Something ain't right",
+               isPresented: $hasError,
+               actions: {}) {
+            Text("It looks like your form is invalid")
+        }
+    }
 }
 
 private extension CreateContactView {

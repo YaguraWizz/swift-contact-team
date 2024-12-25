@@ -22,12 +22,20 @@ struct ContactDetailView: View {
                     Text("Email")
                 }
                 
-                LabeledContent {
-                    Text(contact.phoneNumber)
-                } label: {
-                    Text("Phone Number")
+                Section("Phone Numbers") {
+                    if contact.phoneNumbers.isEmpty {
+                        Text("No phone numbers available")
+                            .foregroundColor(.secondary)
+                    }
+                    ForEach(Array(contact.phoneNumbers), id: \.self) { phoneNumber in
+                        LabeledContent {
+                            Text(phoneNumber.number)
+                        } label: {
+                            Text(phoneNumber.type)
+                        }
+                    }
+                    
                 }
-                
                 LabeledContent {
                     Text(contact.dob, style: .date)
                 } label: {

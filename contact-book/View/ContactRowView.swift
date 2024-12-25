@@ -24,9 +24,14 @@ struct ContactRowView: View {
             Text(contact.email)
                 .font(.callout.bold())
             
-            Text(contact.phoneNumber)
-                .font(.callout.bold())
-            
+            if contact.phoneNumbers.isEmpty {
+                Text("No phone numbers")
+            } else {
+                if let item = contact.phoneNumbers.first {
+                    Text(item.number)
+                        .font(.callout.bold())
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .overlay(alignment: .topTrailing) {
