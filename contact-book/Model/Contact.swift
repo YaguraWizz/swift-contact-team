@@ -44,9 +44,6 @@ final class PhoneNumber: NSManagedObject, Identifiable {
 }
 
 
-
-
-
 extension Contact {
     
     private static var contactsFetchRequest: NSFetchRequest<Contact> {
@@ -61,50 +58,60 @@ extension Contact {
         return request
     }
     
-    static func filter1(with config: SearchConfig) -> NSPredicate {
-        switch config.filter {
-        case .all:
-            return config.query.isEmpty ? NSPredicate(value: true) : NSPredicate(format: "name CONTAINS[cd] %@", config.query)
-        case .fave:
-            return config.query.isEmpty ? NSPredicate(format: "isFavourite == %@", NSNumber(value: true)) :
-            NSPredicate(format: "name CONTAINS[cd] %@ AND isFavourite == %@", config.query, NSNumber(value: true))
-        }
+static func filter(with config: SearchConfig) -> NSPredicate {
+    // Если строка запроса пустая, просто возвращаем предикат, который зависит от filter
+    guard !config.query.isEmpty else {
+        return config.filter == .fave ? 
+            NSPredicate(format: "isFavourite == %@", NSNumber(value: true)) : 
+            NSPredicate(value: true)
     }
     
-    static func filter(with config: SearchConfig) -> NSPredicate {
-        guard !config.query.isEmpty else {
-            // Если строка запроса пуста, возвращаем всех
-            return NSPredicate(value: true)
+    let trimmedQuery = config.query.trimmingCharacters(in: .whitespacesAndNewlines)
+    
+    // Проверка на наличие тега в запросе
+    if let range = trimmedQuery.range(of: ":") {
+        let tag = trimmedQuery[..<range.lowerBound].trimmingCharacters(in: .whitespaces).lowercased() // Приводим тег к нижнему регистру
+        let value = trimmedQuery[range.upperBound...].trimmingCharacters(in: .whitespaces)
+        
+        // Создание базового предиката для поиска
+        let basePredicate: NSPredicate
+        switch tag {
+        case "name":
+            basePredicate = NSPredicate(format: "name CONTAINS[cd] %@", value)
+        case "number":
+            basePredicate = NSPredicate(format: "ANY phoneNumbers.number CONTAINS[cd] %@", value)
+        case "email":
+            basePredicate = NSPredicate(format: "email CONTAINS[cd] %@", value)
+        default:
+            // Если тег не распознан, считаем по умолчанию как поиск по имени
+            basePredicate = NSPredicate(format: "name CONTAINS[cd] %@", trimmedQuery)
         }
         
-        let trimmedQuery = config.query.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // Проверка на наличие тега в запросе
-        if let range = trimmedQuery.range(of: ":") {
-            let tag = trimmedQuery[..<range.lowerBound].trimmingCharacters(in: .whitespaces)
-            let value = trimmedQuery[range.upperBound...].trimmingCharacters(in: .whitespaces)
-            
-            switch tag.lowercased() {
-            case "name":
-                return NSPredicate(format: "name CONTAINS[cd] %@", value)
-            case "number":
-                return NSPredicate(format: "ANY phoneNumbers.number CONTAINS[cd] %@", value)
-            case "email":
-                return NSPredicate(format: "email CONTAINS[cd] %@", value)
-            default:
-                // Если тег не распознан, можно либо вернуть пустой результат, либо считать по умолчанию как поиск по имени
-                return NSPredicate(format: "name CONTAINS[cd] %@", trimmedQuery)
-            }
-        } else {
-            // Если тег не найден, считаем запрос как поиск по имени по умолчанию
-            return NSPredicate(format: "name CONTAINS[cd] %@", trimmedQuery)
-        }
+        // Если фильтр .fave, добавляем условие для избранных
+        return config.filter == .fave ? 
+            NSCompoundPredicate(andPredicateWithSubpredicates: [
+                basePredicate,
+                NSPredicate(format: "isFavourite == %@", NSNumber(value: true))
+            ]) : basePredicate
     }
     
+    // Если тегов нет, просто ищем по имени по умолчанию
+    let basePredicate = NSPredicate(format: "name CONTAINS[cd] %@", trimmedQuery)
+    
+    // Если фильтр .fave, добавляем условие для избранных
+    return config.filter == .fave ? 
+        NSCompoundPredicate(andPredicateWithSubpredicates: [
+            basePredicate,
+            NSPredicate(format: "isFavourite == %@", NSNumber(value: true))
+        ]) : basePredicate
+}
+
     static func sort(order: Sort) -> [NSSortDescriptor] {
         [NSSortDescriptor(keyPath: \Contact.name, ascending: order == .asc)]
     }
 }
+
+
 
 extension Contact {
     
