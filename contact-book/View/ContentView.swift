@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  MyRideOrDies
 //
-//  Created by Tunde Adegoroye on 10/12/2022.
+//  Created by Nikita on 16.12.2024.
 //
 
 import SwiftUI
